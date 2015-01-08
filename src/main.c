@@ -12,7 +12,7 @@
 
 volatile int32_t dma_handler_counter = 0;
 
-uint32_t camera_frame[10]; // for 320*240 resolution
+uint32_t camera_frame[80*60]; // for 320*240 resolution
 
 void RCC_Configuration(void)
 {
@@ -155,11 +155,11 @@ void camera_init(void)
 	dma_init.DMA_PeripheralBaseAddr = (uint32_t) &(DCMI->DR);
 	dma_init.DMA_Memory0BaseAddr = (uint32_t) camera_frame;
 	dma_init.DMA_DIR = DMA_DIR_PeripheralToMemory;
-	dma_init.DMA_BufferSize = 10;
+	dma_init.DMA_BufferSize = 80*60/2;
 	dma_init.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	dma_init.DMA_MemoryInc = DMA_MemoryInc_Enable;
 	dma_init.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
-	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
+	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
 	dma_init.DMA_Mode = DMA_Mode_Normal;
 	dma_init.DMA_Priority = DMA_Priority_High;
 	dma_init.DMA_FIFOMode = DMA_FIFOMode_Disable;
@@ -179,7 +179,7 @@ void camera_init(void)
 	dma_stream1_irq.NVIC_IRQChannelCmd = ENABLE;
 
 	NVIC_Init(&dma_stream1_irq);
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
 
 	NVIC_InitTypeDef camera_irq;
 	camera_irq.NVIC_IRQChannel = DCMI_IRQn;
@@ -268,37 +268,57 @@ char* itoa(int value, char* result, int base)
 int count = 0;
 char strr[10] = "";
 int flag = 0;
+int tt = 0;
 void DCMI_IRQHandler(void)
 {
 	if(DCMI_GetFlagStatus(DCMI_FLAG_VSYNCRI) == SET)
 	{
 		if(flag!=1){
-			USART1_puts("dcmi VSYNCR1\r\n");
+//			USART1_puts("dcmi VSYNCR1\r\n");
 		}
 		DCMI_ClearFlag(DCMI_FLAG_VSYNCRI);
 	}
 	else if(DCMI_GetFlagStatus(DCMI_FLAG_LINERI) == SET)
 	{
 		if(flag!=1){
-			USART1_puts("dcmi LINERI\r\n");
+//			USART1_puts("dcmi LINERI\r\n");
 		}
 		DCMI_ClearFlag(DCMI_FLAG_LINERI);
 	}
 	else if(DCMI_GetFlagStatus(DCMI_FLAG_FRAMERI) == SET)                                                   
 	{
+		char st[10] = "";
+		char t[10] = "";
 		flag = 1;
-//		USART1_puts("DCMI_FLAG_FRAMERI \n\n");
+/*		uint32_t dr = DCMI_ReadData();
+		itoa(dr,t,10);
+		USART1_puts("DR = ");
+		USART1_puts(t);
+		USART1_puts("\r\n");
+		*/
+		if(tt < 80*60/2-1 ){
+			uint16_t count = DMA_GetCurrDataCounter(DMA2_Stream1);
+			USART1_puts("count");
+			itoa(count,st,10);
+			USART1_puts(st);
+			USART1_puts("\r\n");
+			flag = 1;
+			USART1_puts("DCMI_FLAG_FRAMERI \n\n");
+			tt++;
+		}
 		DCMI_ClearFlag(DCMI_FLAG_FRAMERI);
 	}
 	else if(DCMI_GetFlagStatus(DCMI_FLAG_ERRRI) == SET)
 	{
-		USART1_puts("DCMI_FLAG_ERRRI \n\n");
+//		USART1_puts("DCMI_FLAG_ERRRI \n\n");
 		DCMI_ClearFlag(DCMI_FLAG_ERRRI);
 	}
 	else if(DCMI_GetFlagStatus(DCMI_FLAG_OVFRI) == SET)
 	{
+		
+
 		flag = 1;
-		USART1_puts("DCMI_FLAG_OVFRI \n\n");
+//		USART1_puts("DCMI_FLAG_OVFRI \n\n");
 		DCMI_ClearFlag(DCMI_FLAG_OVFRI);
 	}
 }
@@ -307,15 +327,15 @@ void DCMI_IRQHandler(void)
 char st[10]="";
 void DMA2_Stream1_IRQHandler(void)
 {
+	USART1_puts("ys");
+	dma_handler_counter++;
+	itoa(dma_handler_counter,st,10);
+	USART1_puts(st);
+	USART1_puts("\r\n");
+	
 	if(DMA_GetITStatus(DMA2_Stream1, DMA_IT_TCIF1) != RESET)
 	{
-		int r = DCMI_ReadData();
-		itoa(r,st,10);
-		USART1_puts(st);
-		USART1_puts("\r\n");
-		USART1_puts("DMA handle!\r\n");
 		
-		dma_handler_counter++;
 		DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_TCIF1);
 	}
 	if(DMA_GetITStatus(DMA2_Stream1,DMA_IT_TEIF1) == SET){
@@ -356,10 +376,11 @@ int main(void)
 	DMA_Cmd(DMA2_Stream1, ENABLE);
 	DCMI_Cmd(ENABLE);
 	DCMI_CaptureCmd(ENABLE);
-	
+	int time = 0;
 	while(1)
 	{
-		if(dma_handler_counter == 10){
+		if(dma_handler_counter == 1){
+			USART1_puts("pic");
 			SendPicture();
 			GPIO_SetBits(GPIOG, GPIO_Pin_14);
 		}
