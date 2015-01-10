@@ -9,10 +9,16 @@
 #include "stm32f4xx.h"
 #include "misc.h"
 #include "ov7670_regsmap.h"
+#include "usbh_core.h"
+#include "usbh_usr.h"
+#include "usbh_msc_core.h"
+#include "flash_if.h"
 
 volatile int32_t dma_handler_counter = 0;
 
 uint32_t camera_frame[80*60]; // for 320*240 resolution
+USB_OTG_CORE_HANDLE          USB_OTG_Core;
+USBH_HOST                    USB_Host;
 
 void RCC_Configuration(void)
 {
@@ -72,6 +78,20 @@ void USART1_puts(char* s)
 	}
 }
 
+void USB_init(void){
+	BSP_Init();
+//	USART1_puts("BSP INIT\r\n");
+	FLASH_If_FlashUnlock();
+//	USART1_puts("flash\r\n");
+	USBH_Init(&USB_OTG_Core, USB_OTG_HS_CORE_ID, &USB_Host, &USBH_MSC_cb, &USR_Callbacks);
+//	USART1_puts("init\r\n");
+	while (1)
+	{
+		/* Host Task handler */
+		USBH_Process(&USB_OTG_Core, &USB_Host);
+	}
+
+}
 
 void camera_init(void)
 {
@@ -155,11 +175,11 @@ void camera_init(void)
 	dma_init.DMA_PeripheralBaseAddr = (uint32_t) &(DCMI->DR);
 	dma_init.DMA_Memory0BaseAddr = (uint32_t) camera_frame;
 	dma_init.DMA_DIR = DMA_DIR_PeripheralToMemory;
-	dma_init.DMA_BufferSize = 80*60/2;
+	dma_init.DMA_BufferSize = 80*60;
 	dma_init.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	dma_init.DMA_MemoryInc = DMA_MemoryInc_Enable;
 	dma_init.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
-	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
 	dma_init.DMA_Mode = DMA_Mode_Normal;
 	dma_init.DMA_Priority = DMA_Priority_High;
 	dma_init.DMA_FIFOMode = DMA_FIFOMode_Disable;
@@ -234,7 +254,7 @@ void camera_init(void)
 void SendPicture(void)
 {
 	int i;
-	for(i=0;i<10;i++)
+	for(i=0;i<80*60;i++)
 	{
 		while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
 		USART_SendData(USART1, camera_frame[i]);
@@ -296,7 +316,7 @@ void DCMI_IRQHandler(void)
 		USART1_puts(t);
 		USART1_puts("\r\n");
 		*/
-		if(tt < 80*60/2-1 ){
+		if(tt < 80*60 ){
 			uint16_t count = DMA_GetCurrDataCounter(DMA2_Stream1);
 			USART1_puts("count");
 			itoa(count,st,10);
@@ -327,15 +347,15 @@ void DCMI_IRQHandler(void)
 char st[10]="";
 void DMA2_Stream1_IRQHandler(void)
 {
-	USART1_puts("ys");
-	dma_handler_counter++;
-	itoa(dma_handler_counter,st,10);
-	USART1_puts(st);
-	USART1_puts("\r\n");
+	
 	
 	if(DMA_GetITStatus(DMA2_Stream1, DMA_IT_TCIF1) != RESET)
 	{
-		
+		USART1_puts("ys");
+		dma_handler_counter++;
+		itoa(dma_handler_counter,st,10);
+		USART1_puts(st);
+		USART1_puts("\r\n");
 		DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_TCIF1);
 	}
 	if(DMA_GetITStatus(DMA2_Stream1,DMA_IT_TEIF1) == SET){
@@ -383,8 +403,13 @@ int main(void)
 			USART1_puts("pic");
 			SendPicture();
 			GPIO_SetBits(GPIOG, GPIO_Pin_14);
+			break;
 		}
 	}
+	GPIO_ResetBits(GPIOG, GPIO_Pin_13);
+	GPIO_ResetBits(GPIOG, GPIO_Pin_14);
+
+	USB_init();
 
 	return 0;
 }

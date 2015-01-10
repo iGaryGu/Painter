@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    FW_upgrade/inc/stm32f4xx_it.h 
+  * @file    FW_upgrade/inc/command.h 
   * @author  MCD Application Team
   * @version V1.0.1
   * @date    11-November-2013
-  * @brief   This file contains the headers of the interrupt handlers.
+  * @brief   Header file for command.c 
   ******************************************************************************
   * @attention
   *
@@ -26,37 +26,30 @@
   */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F4xx_IT_H
-#define __STM32F4xx_IT_H
+#ifndef _COMMAND_H
+#define _COMMAND_H
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
-
+#endif
+   
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
+#include "flash_if.h"
+#include "usbh_usr.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void USB_OTG_BSP_TimerIRQ (void);
-void OTG_HS_IRQHandler(void);
-void TIM2_IRQHandler(void);
-void EXTI1_IRQHandler(void);
+/* Exported macros -----------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */ 
+void COMMAND_UPLOAD(void);
+void COMMAND_DOWNLOAD(void);
+void COMMAND_JUMP(void);
+void COMMAND_ProgramFlashMemory(void);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STM32F4xx_IT_H */
+#endif  /* _COMMAND_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

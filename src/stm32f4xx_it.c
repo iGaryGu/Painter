@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    Template/stm32f4xx_it.c 
+  * @file    FW_upgrade/src/stm32f4xx_it.c 
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    20-September-2013
+  * @version V1.0.1
+  * @date    11-November-2013
   * @brief   Main Interrupt Service Routines.
   *          This file provides template for all exceptions handler and 
   *          peripherals interrupt service routine.
@@ -25,20 +25,27 @@
   * limitations under the License.
   *
   ******************************************************************************
-  */
+  */ 
 
 /* Includes ------------------------------------------------------------------*/
+#include "usb_hcd_int.h"
+#include "usbh_usr.h"
 #include "stm32f4xx_it.h"
-#include "main.h"
 
-/** @addtogroup Template
+/** @addtogroup STM32F429I-Discovery_FW_Upgrade
   * @{
   */
-
+  
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+extern USB_OTG_CORE_HANDLE          USB_OTG_Core;
+extern USBH_HOST                    USB_Host;
+
+extern __IO uint32_t UploadCondition;
+extern __IO uint32_t TimingDelay;
+__IO uint8_t Counter = 0x00;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -141,6 +148,39 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+  if (UploadCondition != 0x00)
+  {
+    /* Check if User button Pressed */
+    if (STM_EVAL_PBGetState(BUTTON_USER) == Bit_SET)
+    {
+      if (TimingDelay != 0x00)
+      { 
+        TimingDelay--;
+      }
+      else
+      {
+        if (Counter < 100)
+        {
+          Counter++;
+        }
+        else
+        { 
+          Counter = 0x00;
+        }
+      }
+    }
+    else
+    {
+      if (TimingDelay != 0x00)
+      { 
+        UploadCondition = 0x00;
+      }
+    }
+  }
+  else
+  {
+    TimingDelay_Decrement();
+  }
 }
 
 /******************************************************************************/
@@ -159,10 +199,59 @@ void SysTick_Handler(void)
 {
 }*/
 
+/**
+  * @brief  EXTI1_IRQHandler.
+  *         This function handles External line 1 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void EXTI1_IRQHandler(void)
+{
+  if (EXTI_GetITStatus(EXTI_Line1) != RESET)
+  {
+    USB_Host.usr_cb->OverCurrentDetected();
+    EXTI_ClearITPendingBit(EXTI_Line1);
+  }
+}
 
 /**
-  * @}
-  */ 
+  * @brief  EXTI0_IRQHandler.
+  *         This function handles External line 0 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void EXTI0_IRQHandler(void)
+{
+  if (EXTI_GetITStatus(EXTI_Line0) != RESET)
+  {
+    EXTI_ClearITPendingBit(EXTI_Line0);
+  }
+}
 
+/**
+  * @brief  TIM2_IRQHandler.
+  *         This function handles Timer2 Handler.
+  * @param  None
+  * @retval None
+  */
+void TIM2_IRQHandler(void)
+{
+  USB_OTG_BSP_TimerIRQ();
+}
+
+/**
+  * @brief  OTG_HS_IRQHandler.
+  *         This function handles USB-On-The-Go HS global interrupt request.
+  *         requests.
+  * @param  None
+  * @retval None
+  */
+void OTG_HS_IRQHandler(void)
+{
+  USBH_OTG_ISR_Handler(&USB_OTG_Core);
+}
+/**
+* @}
+*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

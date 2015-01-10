@@ -15,7 +15,7 @@
  * 						I2C_Direction_Receiver for Master receiver
  */
 
-void Delay(uint32_t volatile DelayTime_uS)
+void delay(uint32_t volatile DelayTime_uS)
 {
 	uint32_t DelayTime = 0;
 	DelayTime = (SystemCoreClock/1000000)*DelayTime_uS;
@@ -122,19 +122,19 @@ uint8_t I2C_writereg(uint8_t reg, uint8_t data)
 	USART1_puts("write start!\r\n");
 	I2C_write(i2c_dev, (uint8_t) reg); // write one byte to the slave
 	USART1_puts("write!one \r\n");
-	Delay(100);
+	delay(100);
 	I2C_write(i2c_dev, (uint8_t) data); // write one byte to the slave
 	USART1_puts("write!two \r\n");
 	I2C_stop(i2c_dev); // stop the transmission
 	USART1_puts("stop!\r\n");
-	Delay(100);
+	delay(100);
 	I2C_start(i2c_dev, SLAVE_ADDRESS, I2C_Direction_Receiver); // start a transmission in Master receiver mode
 	USART1_puts("start!\r\n");
 	tmp = I2C_read_nack(i2c_dev);
 	USART1_puts("write nack!\r\n");
 	I2C_stop(i2c_dev); // stop the transmission
 	USART1_puts("stop!\r\n");
-	Delay(100);
+	delay(100);
 
 	return tmp;
 }
@@ -151,7 +151,7 @@ uint8_t I2C_readreg(uint8_t reg)
 	I2C_stop(i2c_dev); // stop the transmission
 	USART1_puts("stop!\r\n");
 
-	Delay(100);
+	delay(100);
 
 	I2C_start(i2c_dev, SLAVE_ADDRESS, I2C_Direction_Receiver); // start a transmission in Master receiver mode
 	USART1_puts("master received!\r\n");
@@ -162,7 +162,7 @@ uint8_t I2C_readreg(uint8_t reg)
 	USART1_puts("stop!\r\n");
 
 
-	Delay(100);
+	delay(100);
 
 	return tmp;
 }

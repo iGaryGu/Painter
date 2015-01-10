@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    FW_upgrade/inc/stm32f4xx_it.h 
+  * @file    FW_upgrade/inc/USBH_conf.h
   * @author  MCD Application Team
   * @version V1.0.1
   * @date    11-November-2013
-  * @brief   This file contains the headers of the interrupt handlers.
+  * @brief   General low level driver configuration.
   ******************************************************************************
   * @attention
   *
@@ -26,37 +26,77 @@
   */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F4xx_IT_H
-#define __STM32F4xx_IT_H
-
-#ifdef __cplusplus
- extern "C" {
-#endif 
+#ifndef __USBH_CONF__H__
+#define __USBH_CONF__H__
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
+/** @addtogroup USBH_OTG_DRIVER
+  * @{
+  */
+  
+/** @defgroup USBH_CONF
+  * @brief usb otg low level driver configuration file
+  * @{
+  */ 
 
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void USB_OTG_BSP_TimerIRQ (void);
-void OTG_HS_IRQHandler(void);
-void TIM2_IRQHandler(void);
-void EXTI1_IRQHandler(void);
-#ifdef __cplusplus
-}
+/** @defgroup USBH_CONF_Exported_Defines
+  * @{
+  */ 
+#define USBH_MAX_NUM_ENDPOINTS                2
+#define USBH_MAX_NUM_INTERFACES               2
+#ifdef USE_USB_OTG_FS 
+#define USBH_MSC_MPS_SIZE                 0x40
+#else
+#define USBH_MSC_MPS_SIZE                 0x200
 #endif
+/**
+  * @}
+  */ 
 
-#endif /* __STM32F4xx_IT_H */
 
+/** @defgroup USBH_CONF_Exported_Types
+  * @{
+  */
+   
+/**
+  * @}
+  */ 
+
+
+/** @defgroup USBH_CONF_Exported_Macros
+  * @{
+  */
+   
+/**
+  * @}
+  */ 
+
+/** @defgroup USBH_CONF_Exported_Variables
+  * @{
+  */
+   
+/**
+  * @}
+  */ 
+
+/** @defgroup USBH_CONF_Exported_FunctionsPrototype
+  * @{
+  */
+   
+/**
+  * @}
+  */ 
+
+
+#endif /* __USBH_CONF__H__ */
+
+
+/**
+  * @}
+  */ 
+
+/**
+  * @}
+  */
+   
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -11,18 +11,65 @@ uint32_t ov7670_init()
 	if (I2C_readreg(0x0a) != 0x76) {
 		return 1;
 	}
-	USART1_puts("start to write!\r\n");
-	I2C_writereg(REG_COM7, COM7_RESET); /* reset to default values */
-	USART1_puts("reset default!\r\n");
-	I2C_writereg(REG_CLKRC, CLK_EXT);
-	Delay(1000);
-	c = I2C_readreg(REG_CLKRC);
-	USART1_puts("ext!\r\n");
-	I2C_writereg(REG_COM7, COM7_FMT_VGA | COM7_RGB); /* output format: RGB */
-	USART1_puts("RGB!\r\n");
+	I2C_writereg(REG_COM7,0x80);//reset to default
+	I2C_writereg(REG_CLKRC,0x80);
+	I2C_writereg(REG_COM11,0x0A);
+	I2C_writereg(REG_TSLB, 0x04);
+	I2C_writereg(REG_TSLB, 0x04);
+	I2C_writereg(REG_COM7, 0x04);//ouput format rgb
+	I2C_writereg(REG_RGB444, 0x00);//disable rgb444
+	I2C_writereg(REG_COM15, 0xD0);//set rgb565
 
-	I2C_writereg(REG_COM10, COM10_PCLK_HB); /* set pclk to switch only when data is valid */
-	USART1_puts("pclk switch!\r\n");
+	I2C_writereg(REG_COM15, 0xD0);
+	I2C_writereg(REG_HSTOP, 0x04);
+	I2C_writereg(REG_HREF, 0x24);
+	I2C_writereg(REG_VSTART, 0x02);
+	I2C_writereg(REG_VSTOP, 0x7a);
+	I2C_writereg(REG_VREF, 0x0a);
+	I2C_writereg(REG_COM10, 0x02);
+	I2C_writereg(REG_COM3, 0x04);
+	I2C_writereg(REG_COM14, 0x1a);
+	I2C_writereg(REG_COM14, 0x1a);
+	I2C_writereg(0x72, 0x22);
+	I2C_writereg(0x73, 0xf2);
+
+	//color setting
+
+	I2C_writereg(0x4f, 0x80);
+	I2C_writereg(0x50, 0x80);
+	I2C_writereg(0x51, 0x00);
+	I2C_writereg(0x52, 0x22);
+	I2C_writereg(0x53, 0x5e);
+	I2C_writereg(0x54, 0x80);
+	I2C_writereg(0x56, 0x40);
+	I2C_writereg(0x58, 0x9e);
+	I2C_writereg(0x59, 0x88);
+	I2C_writereg(0x5a, 0x88);
+	I2C_writereg(0x5b, 0x44);
+	I2C_writereg(0x5c, 0x67);
+	I2C_writereg(0x5d, 0x49);
+	I2C_writereg(0x5e, 0x0e);
+	I2C_writereg(0x69, 0x00);
+	I2C_writereg(0x6a, 0x40);
+	I2C_writereg(0x6b, 0x0a);
+	I2C_writereg(0x6c, 0x0a);
+	I2C_writereg(0x6d, 0x55);
+	I2C_writereg(0x6e, 0x11);
+	I2C_writereg(0x6f, 0x9f);
+	I2C_writereg(0xb0, 0x84);
+	USART1_puts("done\r\n");
+//	USART1_puts("start to write!\r\n");
+//	I2C_writereg(REG_COM7, COM7_RESET); /* reset to default values */
+//	USART1_puts("reset default!\r\n");
+//	I2C_writereg(REG_CLKRC, CLK_EXT);
+//	delay(1000);
+//	c = I2C_readreg(REG_CLKRC);
+//	USART1_puts("ext!\r\n");
+//	I2C_writereg(REG_COM7, COM7_FMT_VGA | COM7_RGB); /* output format: RGB */
+//	USART1_puts("RGB!\r\n");
+
+//	I2C_writereg(REG_COM10, COM10_PCLK_HB); /* set pclk to switch only when data is valid */
+//	USART1_puts("pclk switch!\r\n");
 
 	return 0;
 }
