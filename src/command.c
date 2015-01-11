@@ -47,7 +47,7 @@ static uint8_t RAM_Buf[BUFFER_SIZE] =
 static uint32_t TmpProgramCounter = 0x00, TmpReadSize = 0x00 , RamAddress = 0x00;
 static uint32_t LastPGAddress = APPLICATION_ADDRESS;
 
-extern uint32_t camera_frame[80*60];
+extern uint32_t camera_frame[176*72];
 extern FATFS fatfs;
 extern FIL file;
 extern FIL fileR;
@@ -243,7 +243,7 @@ static FRESULT put_file_directory(const char* path){
 }
 static void insert_signature(FIL *fp){
 	int i;
-	for(i = 0 ;i < 80*60; i++){
+	for(i = 0 ;i < 176*72; i++){
 		f_printf(fp,"%d ",(camera_frame[i] & 0xf8000000) >> 27);
 		f_printf(fp,"%d ",(camera_frame[i] & 0x07e00000) >> 21);
 		f_printf(fp,"%d ",(camera_frame[i] & 0x001f0000) >> 16);
