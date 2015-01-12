@@ -243,13 +243,15 @@ static FRESULT put_file_directory(const char* path){
 }
 static void insert_signature(FIL *fp){
 	int i;
+	// output format is RGB565 and convert to RGB888
 	for(i = 0 ;i < 176*72; i++){
-		f_printf(fp,"%d ",(camera_frame[i] & 0xf8000000) >> 27);
-		f_printf(fp,"%d ",(camera_frame[i] & 0x07e00000) >> 21);
-		f_printf(fp,"%d ",(camera_frame[i] & 0x001f0000) >> 16);
-		f_printf(fp,"%d ",(camera_frame[i] & 0x0000f800) >> 11);
-		f_printf(fp,"%d ",(camera_frame[i] & 0x000007e0) >> 5);
-		f_printf(fp,"%d ",camera_frame[i] & 0x0000001f);
+		f_printf(fp,"%d ",(((camera_frame[i] & 0xf8000000) >> 27) << 3 )|(((camera_frame[i] & 0xf8000000) >> 27)>>2 ));//r
+		f_printf(fp,"%d ",(((camera_frame[i] & 0x07e00000) >> 21) << 2 )|(((camera_frame[i] & 0x07e00000) >> 21)>>4 ));//g
+		f_printf(fp,"%d ",(((camera_frame[i] & 0x001f0000) >> 16) << 3 )|(((camera_frame[i] & 0x001f0000) >> 16)>>2 ));//b
+		f_printf(fp,"\r\n");
+		f_printf(fp,"%d ",(((camera_frame[i] & 0x0000f800) >> 11) << 3 )|(((camera_frame[i] & 0x0000f800) >> 11)>>2 ));//r
+		f_printf(fp,"%d ",(((camera_frame[i] & 0x000007e0) >> 5) << 2 )|(((camera_frame[i] & 0x000007e0) >> 5)>>4 ));//g
+		f_printf(fp,"%d ",((camera_frame[i] & 0x0000001f) << 3 )|((camera_frame[i] & 0x0000001f) >> 2));//b
 		f_printf(fp,"\r\n");
 	}
 }
