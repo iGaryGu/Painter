@@ -1,11 +1,11 @@
-PROJECT = Painter
+PROJECT = kj
 
 EXECUTABLE = $(PROJECT).elf
 BIN_IMAGE = $(PROJECT).bin
 HEX_IMAGE = $(PROJECT).hex
 
 # set the path to STM32F429I-Discovery firmware package
-STDP ?= STM32F429I-Discovery_FW_V1.0.1
+STDP ?= ../STM32F429I-Discovery_FW_V1.0.1
 
 # Toolchain configurations
 CROSS_COMPILE ?= arm-none-eabi-
@@ -17,11 +17,12 @@ SIZE = $(CROSS_COMPILE)size
 
 # Cortex-M4 implements the ARMv7E-M architecture
 CPU = cortex-m4
-CFLAGS = -mcpu=$(CPU) -march=armv7e-m -mtune=cortex-m4
+CFLAGS = -mcpu=$(CPU) -march=armv7e-m -mtune=cortex-m4\
+	-DUSER_NAME=\"$(USER)\"
 CFLAGS += -mlittle-endian -mthumb
-CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+# Need study
+CFLAGS += -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -O0
 
-LDFLAGS =
 define get_library_path
     $(shell dirname $(shell $(CC) $(CFLAGS) -print-file-name=$(1)))
 endef
@@ -39,76 +40,81 @@ CFLAGS += -Wl,--gc-sections
 CFLAGS += -fno-common
 CFLAGS += --param max-inline-insns-single=1000
 
-
 # specify STM32F429
 CFLAGS += -DSTM32F429_439xx
 
 # to run from FLASH
 CFLAGS += -DVECT_TAB_FLASH
-LDFLAGS += -T stm32f429zi_flash.ld
-
-# PROJECT SOURCE
-CFLAGS += -I./inc
-OBJS = \
-    ./src/main.o \
-    ./src/stm32f4xx_it.o \
-    ./src/system_stm32f4xx.o \
-	./src/i2c_ops.o \
-	./src/ov7670.o \
-	./src/i2c_routine.o \
-	./src/usb_bsp.o \
-	./src/usbh_usr.o \
-	./src/command.o \
-	./src/fattime.o \
-	./src/flash_if.o
+LDFLAGS += -T $(PWD)/CORTEX_M4F_STM32F4/stm32f429zi_flash.ld
 
 # STARTUP FILE
-OBJS += startup_stm32f429_439xx.o
-
-# CMSIS
-CFLAGS += -I$(STDP)/Libraries/CMSIS/Device/ST/STM32F4xx/Include
-CFLAGS += -I$(STDP)/Libraries/CMSIS/Include
-CFLAGS += -I$(STDP)/Utilities/Third_Party/fat_fs/inc
-CFLAGS += -I$(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/inc
-CFLAGS += -I$(STDP)/Libraries/STM32_USB_HOST_Library/Core/inc
-CFLAGS += -I$(STDP)/Libraries/STM32_USB_HOST_Library/Class/MSC/inc
-CFLAGS += -I$(STDP)/Libraries/STM32_USB_OTG_Driver/inc
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/startup_stm32f429_439xx.o
 
 # STM32F4xx_StdPeriph_Driver
 CFLAGS += -DUSE_STDPERIPH_DRIVER
-CFLAGS += -DUSE_USB_OTG_HS
-CFLAGS += -DUSE_EMBEDDED_PHY
+CFLAGS += -D"assert_param(expr)=((void)0)"
 
-#CFLAGS += -D"assert_param(expr)=((void)0)"
+#My restart
 OBJS += \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/misc.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_gpio.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_rcc.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_usart.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_syscfg.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_i2c.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dcmi.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_flash.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dma.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_tim.o \
-    $(STDP)/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_exti.o \
-	$(STDP)/Utilities/Third_Party/fat_fs/src/ff.o \
-	$(STDP)/Libraries/STM32_USB_HOST_Library/Class/MSC/src/usbh_msc_bot.o \
-	$(STDP)/Libraries/STM32_USB_HOST_Library/Class/MSC/src/usbh_msc_core.o \
-	$(STDP)/Libraries/STM32_USB_HOST_Library/Class/MSC/src/usbh_msc_fatfs.o \
-	$(STDP)/Libraries/STM32_USB_HOST_Library/Class/MSC/src/usbh_msc_scsi.o \
-	$(STDP)/Libraries/STM32_USB_HOST_Library/Core/src/usbh_core.o \
-	$(STDP)/Libraries/STM32_USB_HOST_Library/Core/src/usbh_hcs.o \
-	$(STDP)/Libraries/STM32_USB_HOST_Library/Core/src/usbh_ioreq.o \
-	$(STDP)/Libraries/STM32_USB_HOST_Library/Core/src/usbh_stdreq.o \
-	$(STDP)/Libraries/STM32_USB_OTG_Driver/src/usb_core.o \
-	$(STDP)/Libraries/STM32_USB_OTG_Driver/src/usb_hcd.o \
-	$(STDP)/Libraries/STM32_USB_OTG_Driver/src/usb_hcd_int.o \
-	$(STDP)/Utilities/STM32F429I-Discovery/stm32f429i_discovery.o
+      $(PWD)/CORTEX_M4F_STM32F4/main.o \
+      $(PWD)/CORTEX_M4F_STM32F4/startup/system_stm32f4xx.o \
+      #$(PWD)/CORTEX_M4F_STM32F4/stm32f4xx_it.o \
 
-# STM32F429I-Discovery Utilities
-CFLAGS += -I$(STDP)/Utilities/STM32F429I-Discovery
+OBJS += \
+      $(PWD)/croutine.o \
+      $(PWD)/event_groups.o \
+      $(PWD)/list.o \
+      $(PWD)/queue.o \
+      $(PWD)/tasks.o \
+      $(PWD)/timers.o \
+      $(PWD)/portable/GCC/ARM_CM4F/port.o \
+      $(PWD)/portable/MemMang/heap_1.o \
 
+OBJS += \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/misc.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_gpio.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_rcc.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_usart.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_syscfg.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_i2c.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dma.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_spi.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_exti.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dma2d.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_ltdc.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_fmc.o \
+    $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_rng.o \
+    $(PWD)/Utilities/STM32F429I-Discovery/stm32f429i_discovery.o \
+    $(PWD)/Utilities/STM32F429I-Discovery/stm32f429i_discovery_sdram.o \
+    $(PWD)/Utilities/STM32F429I-Discovery/stm32f429i_discovery_lcd.o \
+    $(PWD)/Utilities/STM32F429I-Discovery/stm32f429i_discovery_ioe.o
+
+# Traffic
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/clib.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/filesystem.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/fio.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/hash-djb2.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/host.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/mmtest.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/osdebug.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/romfs.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/shell.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/stm32_p103.o
+OBJS += $(PWD)/CORTEX_M4F_STM32F4/src/string-util.o
+
+
+
+CFLAGS += -I $(PWD)/CORTEX_M4F_STM32F4/include
+
+CFLAGS += -DUSE_STDPERIPH_DRIVER
+CFLAGS += -I $(PWD)/CORTEX_M4F_STM32F4 \
+	  -I $(PWD)/include \
+	  -I $(PWD)/portable/GCC/ARM_CM4F \
+	  -I $(PWD)/CORTEX_M4F_STM32F4/board \
+	  -I $(PWD)/CORTEX_M4F_STM32F4/Libraries/CMSIS/Device/ST/STM32F4xx/Include \
+	  -I $(PWD)/CORTEX_M4F_STM32F4/Libraries/CMSIS/Include \
+	  -I $(PWD)/CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver/inc \
+	  -I $(PWD)/Utilities/STM32F429I-Discovery
 
 all: $(BIN_IMAGE)
 
@@ -129,14 +135,23 @@ $(EXECUTABLE): $(OBJS)
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
+flash:
+	st-flash write $(BIN_IMAGE) 0x8000000
+
+openocd_flash:
+	openocd \
+	-f board/stm32f429discovery.cfg \
+	-c "init" \
+	-c "reset init" \
+	-c "flash probe 0" \
+	-c "flash info 0" \
+	-c "flash write_image erase $(BIN_IMAGE)  0x08000000" \
+	-c "reset run" -c shutdown
+
+.PHONY: clean
 clean:
 	rm -rf $(EXECUTABLE)
 	rm -rf $(BIN_IMAGE)
 	rm -rf $(HEX_IMAGE)
 	rm -f $(OBJS)
 	rm -f $(PROJECT).lst
-
-flash:
-	st-flash write $(BIN_IMAGE) 0x8000000
-
-.PHONY: clean
