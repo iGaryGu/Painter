@@ -1,4 +1,4 @@
-cscope 15 $HOME/workspace/freertos-stm32               0003663194
+cscope 15 $HOME/workspace/Painter               0003665408
 	@CORTEX_M4F_STM32F4/FreeRTOSConfig.h
 
 67 #i‚de‡
@@ -213481,11 +213481,17 @@ ex¥
 	~"ho°.h
 "
 
-22 c⁄° 
+20 
+	#PHASE_DELAY
+ 150
+
+	)
+
+24 c⁄° 
 _§omfs
 ;
 
-26 vﬁ©ûê
+28 vﬁ©ûê
 xSem≠h‹eH™dÀ
  
 	g£rül_tx_waô_£m
@@ -213493,7 +213499,7 @@ xSem≠h‹eH™dÀ
 NULL
 ;
 
-28 vﬁ©ûê
+30 vﬁ©ûê
 xQueueH™dÀ
  
 	g£rül_rx_queue
@@ -213501,17 +213507,17 @@ xQueueH™dÀ
 NULL
 ;
 
-32 
+34 
 	$USART1_IRQH™dÀr
 ()
 
-34 sig√d 
+36 sig√d 
 p‹tBASE_TYPE
  
 xHighîPri‹ôyTaskWokí
 ;
 
-37 i‡(
+39 i‡(
 	`USART_GëITSètus
 (
 USART1
@@ -213521,7 +213527,7 @@ USART_IT_TXE
 RESET
 ) {
 
-41 
+43 
 	`xSem≠h‹eGiveFromISR
 (
 £rül_tx_waô_£m
@@ -213529,7 +213535,7 @@ RESET
 xHighîPri‹ôyTaskWokí
 );
 
-44 
+46 
 	`USART_ITC⁄fig
 (
 USART1
@@ -213539,7 +213545,7 @@ USART_IT_TXE
 DISABLE
 );
 
-46 }if(
+48 }if(
 	`USART_GëITSètus
 (
 USART1
@@ -213549,7 +213555,7 @@ USART_IT_RXNE
 RESET
 ){
 
-47 
+49 
 msg
  = 
 	`USART_Re˚iveD©a
@@ -213557,7 +213563,7 @@ msg
 USART1
 );
 
-50 if(!
+52 if(!
 	`xQueueSídToBackFromISR
 (
 £rül_rx_queue
@@ -213567,25 +213573,25 @@ msg
 xHighîPri‹ôyTaskWokí
 ))
 
-60 i‡(
+62 i‡(
 xHighîPri‹ôyTaskWokí
 ) {
 
-61 
+63 
 	`èskYIELD
 ();
 
-63 
+65 
 	}
 }
 
-65 
+67 
 	$£nd_byã
 (
 ch
 )
 
-71 !
+73 !
 	`xSem≠h‹eTake
 (
 £rül_tx_waô_£m
@@ -213593,7 +213599,7 @@ ch
 p‹tMAX_DELAY
 ));
 
-76 
+78 
 	`USART_SídD©a
 (
 USART1
@@ -213601,7 +213607,7 @@ USART1
 ch
 );
 
-77 
+79 
 	`USART_ITC⁄fig
 (
 USART1
@@ -213611,15 +213617,15 @@ USART_IT_TXE
 ENABLE
 );
 
-78 
+80 
 	}
 }
 
-80 
+82 
 	$ªcv_byã
 ()
 
-82 
+84 
 	`USART_ITC⁄fig
 (
 USART1
@@ -213629,11 +213635,11 @@ USART_IT_RXNE
 ENABLE
 );
 
-83 
+85 
 msg
 ;
 
-84 !
+86 !
 	`xQueueRe˚ive
 (
 £rül_rx_queue
@@ -213643,59 +213649,59 @@ msg
 p‹tMAX_DELAY
 ));
 
-85  
+87  
 msg
 ;
 
-86 
+88 
 	}
 }
 
-87 
+89 
 	$comm™d_¥om±
 (*
 pvP¨amëîs
 )
 
-89 
+91 
 buf
 [128];
 
-90 *
+92 *
 ¨gv
 [20];
 
-91 
+93 
 höt
 [] = 
 USER_NAME
  "@" USER_NAME "-STM32:~$ ";
 
-93 
+95 
 	`LCD_SëCﬁ‹s
 (0xFFFF, 0x0000);
 
-94 
+96 
 	`LCD_Di•œyCh¨
 (20, 20, 75);
 
-95 
+97 
 	`fio_¥ötf
 (1, "\rWelcomeÅo FreeRTOS Shell\r\n");
 
-97 
+99 
 	`fio_¥ötf
 (1, "%s", 
 höt
 );
 
-98 
+100 
 	`fio_ªad
 (0, 
 buf
 , 127);
 
-99 
+101 
 n
 =
 	`∑r£_comm™d
@@ -213705,7 +213711,7 @@ buf
 ¨gv
 );
 
-101 
+103 
 cmdfunc
  *
 Âå
@@ -213715,19 +213721,19 @@ cmdfunc
 ¨gv
 [0]);
 
-102 
+104 
 	`LCD_Di•œySåögLöe
 (0, 
 ¨gv
 [0]);
 
-103 if(
+105 if(
 Âå
 !=
 NULL
 )
 
-104 
+106 
 	`Âå
 (
 n
@@ -213735,53 +213741,53 @@ n
 ¨gv
 );
 
-106 
+108 
 	`fio_¥ötf
 (2, "\r\n\"%s\" comm™dÇŸ found.\r\n", 
 ¨gv
 [0]);
 
-109 
+111 
 	}
 }
 
-111 
+113 
 	$sy°em_loggî
 (*
 pvP¨amëîs
 )
 
-113 sig√d 
+115 sig√d 
 buf
 [128];
 
-114 
+116 
 ouçut
 [512] = {0};
 
-115 *
+117 *
 èg
  = "\nName State Priority Stack Num\n*******************************************\n";
 
-116 
+118 
 h™dÀ
 , 
 îr‹
 ;
 
-117 c⁄° 
+119 c⁄° 
 p‹tTickTy≥
  
 xDñay
  = 100000 / 100;
 
-118 
+120 
 	`ho°_a˘i⁄
 (
 SYS_SYSTEM
 , "mkdir output");
 
-119 
+121 
 h™dÀ
  = 
 	`ho°_a˘i⁄
@@ -213789,15 +213795,15 @@ h™dÀ
 SYS_OPEN
 , "output/syslog", 4);
 
-120 if(
+122 if(
 h™dÀ
  == -1) {
 
-121 
+123 
 	`fio_¥ötf
 (1, "Open fileÉrror!\n");
 
-126 
+128 
 	`mem˝y
 (
 ouçut
@@ -213807,7 +213813,7 @@ ouçut
 	`°æí
 (tag));
 
-127 
+129 
 îr‹
  = 
 	`ho°_a˘i⁄
@@ -213821,17 +213827,17 @@ ouçut
 	`°æí
 (output));
 
-128 if(
+130 if(
 îr‹
  != 0) {
 
-129 
+131 
 	`fio_¥ötf
 (1, "Wrôêfûêîr‹! Remaö %d byã†didn'àwrôêöÅhêfûe.\n\r", 
 îr‹
 );
 
-130 
+132 
 	`ho°_a˘i⁄
 (
 SYS_CLOSE
@@ -213839,13 +213845,13 @@ SYS_CLOSE
 h™dÀ
 );
 
-133 
+135 
 	`vTaskLi°
 (
 buf
 );
 
-135 
+137 
 	`mem˝y
 (
 ouçut
@@ -213855,7 +213861,7 @@ buf
 	`°æí
 ((*)buf) - 2);
 
-137 
+139 
 îr‹
  = 
 	`ho°_a˘i⁄
@@ -213869,17 +213875,17 @@ buf
 	`°æí
 ((*)buf));
 
-138 if(
+140 if(
 îr‹
  != 0) {
 
-139 
+141 
 	`fio_¥ötf
 (1, "Wrôêfûêîr‹! Remaö %d byã†didn'àwrôêöÅhêfûe.\n\r", 
 îr‹
 );
 
-140 
+142 
 	`ho°_a˘i⁄
 (
 SYS_CLOSE
@@ -213887,13 +213893,13 @@ SYS_CLOSE
 h™dÀ
 );
 
-144 
+146 
 	`vTaskDñay
 (
 xDñay
 );
 
-147 
+149 
 	`ho°_a˘i⁄
 (
 SYS_CLOSE
@@ -213901,101 +213907,493 @@ SYS_CLOSE
 h™dÀ
 );
 
-148 
+150 
 	}
 }
 
-150 
+152 
+	$gpio_öô
+(){
+
+154 
+	`RCC_AHB1PîùhClockCmd
+(
+RCC_AHB1Pîùh_GPIOG
+, 
+ENABLE
+);
+
+156 
+GPIO_InôTy≥Def
+ 
+GPIO_InôSåu˘uª
+;
+
+157 
+GPIO_InôSåu˘uª
+.
+GPIO_Pö
+ = 
+GPIO_Pö_13
+ | 
+GPIO_Pö_14
+ | 
+GPIO_Pö_9
+ | 
+GPIO_Pö_10
+;
+
+158 
+GPIO_InôSåu˘uª
+.
+GPIO_Mode
+ = 
+GPIO_Mode_OUT
+;
+
+159 
+GPIO_InôSåu˘uª
+.
+GPIO_OTy≥
+ = 
+GPIO_OTy≥_PP
+;
+
+160 
+GPIO_InôSåu˘uª
+.
+GPIO_PuPd
+ = 
+GPIO_PuPd_NOPULL
+;
+
+161 
+GPIO_InôSåu˘uª
+.
+GPIO_S≥ed
+ = 
+GPIO_S≥ed_2MHz
+;
+
+162 
+	`GPIO_Inô
+(
+GPIOG
+, &
+GPIO_InôSåu˘uª
+);
+
+163 
+	}
+}
+
+164 
+	$Dñay
+(
+uöt32_t
+ vﬁ©ûê
+DñayTime_uS
+){
+
+165 
+uöt32_t
+ 
+DñayTime
+ = 0;
+
+166 
+DñayTime
+ = 
+Sy°emC‹eClock
+/1000000*
+DñayTime_uS
+;
+
+167 ;
+DñayTime
+ != 0 ; DelayTime--)
+
+168 
+	`__NOP
+();
+
+169 
+	}
+}
+
+171 
+	$˛ockwi£
+(
+n
+)
+
+173 
+	`GPIO_Re£tBôs
+(
+GPIOG
+, 
+GPIO_Pö_9
+ | 
+GPIO_Pö_10
+ | \
+
+174 
+GPIO_Pö_13
+ | 
+GPIO_Pö_14
+);
+
+175 
+i
+ = 0; i < 
+n
+; i++) {
+
+176 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_14
+);
+
+177 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+178 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_13
+);
+
+179 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+180 
+	`GPIO_ToggÀBôs
+(
+GPIOG
+, 
+GPIO_Pö_14
+);
+
+181 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+182 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_10
+);
+
+183 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+184 
+	`GPIO_ToggÀBôs
+(
+GPIOG
+, 
+GPIO_Pö_13
+);
+
+185 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+186 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_9
+);
+
+187 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+188 
+	`GPIO_ToggÀBôs
+(
+GPIOG
+, 
+GPIO_Pö_10
+);
+
+189 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+190 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_14
+);
+
+191 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+193 
+	}
+}
+
+194 
+	$cou¡îClockwi£
+(
+n
+)
+
+196 
+	`GPIO_Re£tBôs
+(
+GPIOG
+, 
+GPIO_Pö_9
+ | 
+GPIO_Pö_10
+ | \
+
+197 
+GPIO_Pö_13
+ | 
+GPIO_Pö_14
+);
+
+198 
+i
+ = 0; i < 
+n
+; i++) {
+
+199 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_9
+);
+
+200 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+201 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_10
+);
+
+202 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+203 
+	`GPIO_ToggÀBôs
+(
+GPIOG
+, 
+GPIO_Pö_9
+);
+
+204 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+205 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_13
+);
+
+206 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+207 
+	`GPIO_ToggÀBôs
+(
+GPIOG
+, 
+GPIO_Pö_10
+);
+
+208 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+209 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_14
+);
+
+210 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+211 
+	`GPIO_ToggÀBôs
+(
+GPIOG
+, 
+GPIO_Pö_13
+);
+
+212 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+213 
+	`GPIO_SëBôs
+(
+GPIOG
+, 
+GPIO_Pö_9
+);
+
+214 
+	`Dñay
+(
+PHASE_DELAY
+);
+
+216 
+	}
+}
+
+217 
 	$maö
 ()
 
-152 
-	`öô_rs232
+219 
+	`gpio_öô
 ();
 
-153 
-	`íabÀ_rs232_öãºu±s
-();
+220 
+	`˛ockwi£
+(512);
 
-154 
-	`íabÀ_rs232
-();
+221 
+	`cou¡îClockwi£
+(512);
 
-156 
-	`fs_öô
-();
-
-157 
-	`fio_öô
-();
-
-161 
+224 
 	`LCD_Inô
 ();
 
-163 
+225 
 	`LTDC_Cmd
 (
 ENABLE
 );
 
-164 
+226 
 	`LCD_LayîInô
 ();
 
-165 
+227 
 	`LCD_SëLayî
 ( 0x0001 );
 
-166 
+228 
 	`LCD_CÀ¨
 ( 0x0000 );
 
-167 
+229 
 	`LCD_SëTextCﬁ‹
 ( 0xFFFF );
 
-172 
-	`vSem≠h‹eCª©eBö¨y
-(
-£rül_tx_waô_£m
-);
-
-175 
-£rül_rx_queue
- = 
-	`xQueueCª©e
-(1, ());
-
-178 
+241 
 	`xTaskCª©e
 (
 comm™d_¥om±
 ,
 
-179 (sig√d 
+242 (sig√d 
 p‹tCHAR
  *) "CLI",
 
-180 512 , 
+243 512 , 
 NULL
 , 
 tskIDLE_PRIORITY
  + 2, NULL);
 
-188 
+251 
+	`xTaskCª©e
+(,
+
+252 (sig√d 
+p‹tCHAR
+ *) "",
+
+253 512 , 
+NULL
+, 
+tskIDLE_PRIORITY
+ + 1, NULL);
+
+255 
 	`vTaskSèπScheduÀr
 ();
 
-191 
+258 
 	}
 }
 
-193 
+260 
 	$vAµliˇti⁄TickHook
 ()
 
-195 
+262 
 	}
 }
 
