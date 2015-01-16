@@ -16,7 +16,7 @@
 
 volatile int32_t dma_handler_counter = 0;
 
-uint32_t camera_frame[176*72]; // for 176x144 resolution
+uint8_t camera_frame[176*144]; // for 176x144 resolution
 USB_OTG_CORE_HANDLE          USB_OTG_Core;
 USBH_HOST                    USB_Host;
 
@@ -175,11 +175,11 @@ void camera_init(void)
 	dma_init.DMA_PeripheralBaseAddr = (uint32_t) &(DCMI->DR);
 	dma_init.DMA_Memory0BaseAddr = (uint32_t) camera_frame;
 	dma_init.DMA_DIR = DMA_DIR_PeripheralToMemory;
-	dma_init.DMA_BufferSize = 176*72;
+	dma_init.DMA_BufferSize = 176*144/2;
 	dma_init.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	dma_init.DMA_MemoryInc = DMA_MemoryInc_Enable;
 	dma_init.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
-	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
+	dma_init.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
 	dma_init.DMA_Mode = DMA_Mode_Normal;
 	dma_init.DMA_Priority = DMA_Priority_High;
 	dma_init.DMA_FIFOMode = DMA_FIFOMode_Disable;
@@ -254,7 +254,7 @@ void camera_init(void)
 void SendPicture(void)
 {
 	int i;
-	for(i=0;i<176*72;i++)
+	for(i=0;i<176*144;i++)
 	{
 		while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
 		USART_SendData(USART1, camera_frame[i]);
@@ -310,13 +310,13 @@ void DCMI_IRQHandler(void)
 		char st[10] = "";
 		char t[10] = "";
 		flag = 1;
-/*		uint32_t dr = DCMI_ReadData();
+		uint32_t dr = DCMI_ReadData();
 		itoa(dr,t,10);
 		USART1_puts("DR = ");
 		USART1_puts(t);
 		USART1_puts("\r\n");
-		*/
-		if(tt < 176*72 ){
+		
+		if(tt < 176*144/4 ){
 			uint16_t count = DMA_GetCurrDataCounter(DMA2_Stream1);
 			USART1_puts("count");
 			itoa(count,st,10);
@@ -347,8 +347,6 @@ void DCMI_IRQHandler(void)
 char st[10]="";
 void DMA2_Stream1_IRQHandler(void)
 {
-	
-	
 	if(DMA_GetITStatus(DMA2_Stream1, DMA_IT_TCIF1) != RESET)
 	{
 		USART1_puts("ys");
