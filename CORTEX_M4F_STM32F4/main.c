@@ -6,7 +6,9 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+/************************/
 #include <string.h>
+#include <math.h>
 
 /* Filesystem includes */
 #include "filesystem.h"
@@ -16,13 +18,13 @@
 #include "clib.h"
 #include "shell.h"
 #include "host.h"
+#include "dataQuick.h"
 
 #define PHASE_DELAY 500.0
 #define PHASE_DELAY_MIN 100.0
 /* _sromfs symbol can be found in main.ld linker script
  * it contains file system structure of test_romfs directory
  */
-extern const unsigned char _sromfs;
 
 //static void setup_hardware();
 
@@ -43,6 +45,7 @@ xTaskHandle xHandle_motorB;
 /* should motor A, B work flag*/
 int motorA = 0;
 int motorB = 0;
+/**/
 /* Add for serial input */
 volatile xSemaphoreHandle serial_tx_wait_sem = NULL;
 /* Add for serial input */
@@ -113,14 +116,108 @@ void Delay(uint32_t volatile DelayTime_uS){
 	for(;DelayTime != 0 ; DelayTime--)
 		__NOP();
 }
-        //vTaskDelay(xDelay);
+
+void clockwise(int n, float delay)
+{
+	GPIO_ResetBits(GPIOG, GPIO_Pin_9 | GPIO_Pin_10 | \
+	               GPIO_Pin_13);
+	GPIO_SetBits(GPIOG, GPIO_Pin_14);
+	for(int i = 0; i < n; i++) {
+		GPIO_ResetBits(GPIOG, GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_13);
+		Delay(delay);
+		GPIO_SetBits(GPIOG, GPIO_Pin_13);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
+		Delay(delay);
+		GPIO_SetBits(GPIOG, GPIO_Pin_10);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
+		Delay(delay);
+		GPIO_SetBits(GPIOG, GPIO_Pin_9);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOG, GPIO_Pin_10);
+		Delay(delay);
+		GPIO_SetBits(GPIOG, GPIO_Pin_14);
+		Delay(delay);
+	}
+}
+void counterClockwise(int n, float delay)
+{
+	GPIO_ResetBits(GPIOG, GPIO_Pin_10 | \
+	               GPIO_Pin_13 | GPIO_Pin_14);
+	GPIO_SetBits(GPIOG, GPIO_Pin_9);
+	for(int i = 0; i < n; i++) {
+		GPIO_ResetBits(GPIOG, GPIO_Pin_14);
+		Delay(delay);
+		GPIO_SetBits(GPIOG, GPIO_Pin_10);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOG, GPIO_Pin_9);
+		Delay(delay);
+		GPIO_SetBits(GPIOG, GPIO_Pin_13);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOG, GPIO_Pin_10);
+		Delay(delay);
+		GPIO_SetBits(GPIOG, GPIO_Pin_14);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
+		Delay(delay);
+		GPIO_SetBits(GPIOG, GPIO_Pin_9);
+		Delay(delay);
+	}
+}
+void clockwiseB(int n, float delay)
+{
+	GPIO_ResetBits(GPIOE, GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4);
+	GPIO_SetBits(GPIOE, GPIO_Pin_5);
+	for(int i = 0; i < n; i++) {
+		GPIO_ResetBits(GPIOE, GPIO_Pin_2);
+		Delay(delay);
+		GPIO_SetBits(GPIOE, GPIO_Pin_4);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOE, GPIO_Pin_5);
+		Delay(delay);
+		GPIO_SetBits(GPIOE, GPIO_Pin_3);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOE, GPIO_Pin_4);
+		Delay(delay);
+		GPIO_SetBits(GPIOE, GPIO_Pin_2);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOE, GPIO_Pin_3);
+		Delay(delay);
+		GPIO_SetBits(GPIOE, GPIO_Pin_5);
+		Delay(delay);
+	}
+}
+void counterClockwiseB(int n, float delay)
+{
+	GPIO_ResetBits(GPIOE, GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5);
+	GPIO_SetBits(GPIOE, GPIO_Pin_2);
+	for(int i = 0; i < n; i++) {
+		GPIO_ResetBits(GPIOE, GPIO_Pin_5);
+		Delay(delay);
+		GPIO_SetBits(GPIOE, GPIO_Pin_3);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOE, GPIO_Pin_2);
+		Delay(delay);
+		GPIO_SetBits(GPIOE, GPIO_Pin_4);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOE, GPIO_Pin_3);
+		Delay(delay);
+		GPIO_SetBits(GPIOE, GPIO_Pin_5);
+		Delay(delay);
+		GPIO_ToggleBits(GPIOE, GPIO_Pin_4);
+		Delay(delay);
+		GPIO_SetBits(GPIOE, GPIO_Pin_2);
+		Delay(delay);
+	}
+}
 
 void parse(char* str,char* argv[]){
 	int b_quote=0, b_dbquote=0;
 	int count = 0;
 	int p = 0;
 	int i;
-	for(i=0; str[i]; ++i){
+	for(i=0; str[i]; i++){
 		if(str[i]=='\'')
 			++b_quote;
 		if(str[i]=='"')
@@ -155,101 +252,6 @@ void gpio_init(){
 	GPIO_Init(GPIOE, &GPIO_E);
 }
 
-void clockwise(int n, float delay)
-{
-	GPIO_ResetBits(GPIOG, GPIO_Pin_9 | GPIO_Pin_10 | \
-	               GPIO_Pin_13 | GPIO_Pin_14);
-	for(int i = 0; i < n; i++) {
-		GPIO_SetBits(GPIOG, GPIO_Pin_14);
-		GPIO_ResetBits(GPIOG, GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_13);
-		Delay(delay);
-		GPIO_SetBits(GPIOG, GPIO_Pin_13);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
-		Delay(delay);
-		GPIO_SetBits(GPIOG, GPIO_Pin_10);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
-		Delay(delay);
-		GPIO_SetBits(GPIOG, GPIO_Pin_9);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOG, GPIO_Pin_10);
-		Delay(delay);
-		GPIO_SetBits(GPIOG, GPIO_Pin_14);
-		Delay(delay);
-	}
-}
-void counterClockwise(int n, float delay)
-{
-	GPIO_ResetBits(GPIOG, GPIO_Pin_9 | GPIO_Pin_10 | \
-	               GPIO_Pin_13 | GPIO_Pin_14);
-	for(int i = 0; i < n; i++) {
-		GPIO_SetBits(GPIOG, GPIO_Pin_9);
-		GPIO_ResetBits(GPIOG, GPIO_Pin_14);
-		Delay(delay);
-		GPIO_SetBits(GPIOG, GPIO_Pin_10);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOG, GPIO_Pin_9);
-		Delay(delay);
-		GPIO_SetBits(GPIOG, GPIO_Pin_13);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOG, GPIO_Pin_10);
-		Delay(delay);
-		GPIO_SetBits(GPIOG, GPIO_Pin_14);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
-		Delay(delay);
-		GPIO_SetBits(GPIOG, GPIO_Pin_9);
-		Delay(delay);
-	}
-}
-void clockwiseB(int n, float delay)
-{
-	GPIO_ResetBits(GPIOE, GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5);
-	for(int i = 0; i < n; i++) {
-		GPIO_SetBits(GPIOE, GPIO_Pin_5);
-		GPIO_ResetBits(GPIOE, GPIO_Pin_2);
-		Delay(delay);
-		GPIO_SetBits(GPIOE, GPIO_Pin_4);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOE, GPIO_Pin_5);
-		Delay(delay);
-		GPIO_SetBits(GPIOE, GPIO_Pin_3);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOE, GPIO_Pin_4);
-		Delay(delay);
-		GPIO_SetBits(GPIOE, GPIO_Pin_2);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOE, GPIO_Pin_3);
-		Delay(delay);
-		GPIO_SetBits(GPIOE, GPIO_Pin_5);
-		Delay(delay);
-	}
-}
-void counterClockwiseB(int n, float delay)
-{
-	GPIO_ResetBits(GPIOE, GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5);
-	for(int i = 0; i < n; i++) {
-		GPIO_SetBits(GPIOE, GPIO_Pin_2);
-		GPIO_ResetBits(GPIOE, GPIO_Pin_5);
-		Delay(delay);
-		GPIO_SetBits(GPIOE, GPIO_Pin_3);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOE, GPIO_Pin_2);
-		Delay(delay);
-		GPIO_SetBits(GPIOE, GPIO_Pin_4);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOE, GPIO_Pin_3);
-		Delay(delay);
-		GPIO_SetBits(GPIOE, GPIO_Pin_5);
-		Delay(delay);
-		GPIO_ToggleBits(GPIOE, GPIO_Pin_4);
-		Delay(delay);
-		GPIO_SetBits(GPIOE, GPIO_Pin_2);
-		Delay(delay);
-	}
-}
-
 void command_prompt(void *pvParameters)
 {
 	char buf[128];
@@ -257,57 +259,81 @@ void command_prompt(void *pvParameters)
 	char hint[] = USER_NAME "@" USER_NAME "-STM32:~$ ";
 	
 
-	fio_printf(1,"Painter controll!\r\n");
+	fio_printf(1,"Painter control!\r\n");
 	while(1){
 		fio_printf(1, "%s", hint);
 		fio_read(0, buf, 127);
 		//parse f code	
 		parse(buf,argv);
-		motA = atoi(argv[0]);
+		/* this task control pen */
+		//fio_printf(1, "pepenpepep %d\r\n", penCtrl);
+		/*motA = atoi(argv[0]);
 		motB = atoi(argv[1]);
-		/* convert coordinate to steps of motor A, B */
-		int tempA = motA - positionX;
-		int tempB = motB - positionY;
-		positionX = motA;
-		positionY = motB;
-		motA = tempA;
-		motB = tempB;
-		/*********************************************/
-		if(motA != 0) {
-			motorA = 1;
-			mot_num++;
+		int penCtrl = atoi(argv[2]);*/
+		int penCtrl = 0;
+		if(atoi(argv[0]) == 1) {
+		  for(int i = 0; i < data3num; i++) {
+		    doneA = 0;
+		    doneB = 0;
+		    motA = data3[i][0];
+		    motB = data3[i][1];
+		    penCtrl = data3[i][2];
+			fio_printf(1, "%d %d %d\r\n", motA, motB, penCtrl);
+			if(penCtrl == 0) {
+				/* up */
+				TIM4 -> CCR1 = 37;
+			}
+			else if(penCtrl == 1) {
+				/* down */
+				TIM4 -> CCR1 = 115;
+			}
+			/* convert coordinate to steps of motor A, B */
+			int tempA = motA - positionX;
+			int tempB = motB - positionY;
+			positionX = motA;
+			positionY = motB;
+			motA = tempA;
+			motB = tempB;
+			if(motA != 0) {
+				motorA = 1;
+				mot_num++;
+			}
+			if(motB != 0) {
+				motorB = 1;
+				mot_num++;
+			}
+			if(mot_num == 2){
+				dB = ((float)motA/(float)motB) * PHASE_DELAY_MIN;
+				if(dB < 0)
+					dB = 0 - dB;
+				if(dB < PHASE_DELAY_MIN && dB > 0) {
+					dB = PHASE_DELAY_MIN;
+					dA = ((float)motB / (float)motA) * dB;
+					if(dA < 0)
+						dA = 0 - dA;
+				}
+				else {
+					dA = PHASE_DELAY_MIN;
+				}
+			}else{
+				if(motA != 0){
+					/* only motorA moving */
+					dA = PHASE_DELAY_MIN;
+				}
+				else{
+					/* only motorB moving */
+					dB = PHASE_DELAY_MIN;
+					//fio_printf(1,"db = %d \r\n",(int)dB);
+				}
+			}
+			fio_printf(1, "%d, %d\r\n", doneA, doneB);
+			if(doneA == 0 || doneB == 0) {
+				vTaskSuspend(xHandle);
+			}
+		
+			//vTaskSuspend(xHandle);
+		  }
 		}
-		if(motB != 0) {
-			motorB = 1;
-			mot_num++;
-		}
-		if(mot_num == 2){
-			dB = ((float)motA/(float)motB) * PHASE_DELAY;
-			if(dB < 0)
-				dB = 0 - dB;
-			if(dB < 100 && dB > 0) {
-				dB = PHASE_DELAY_MIN;
-				dA = ((float)motB / (float)motA) * dB;
-				if(dA < 0)
-					dA = 0 - dA;
-			}
-			else {
-				dA = PHASE_DELAY;
-			}
-			fio_printf(1,"db = %d \r\n",(int)dB);
-		}else{
-			if(motA != 0){
-				/* only motorA moving */
-				dA = PHASE_DELAY;
-				fio_printf(1,"db = %d \r\n",(int)dA);
-			}
-			else{
-				/* only motorB moving */
-				dB = PHASE_DELAY;
-				fio_printf(1,"db = %d \r\n",(int)dB);
-			}
-		}
-		vTaskSuspend(xHandle);
 	}
 }
 
@@ -327,20 +353,18 @@ void motorA_handler(void *pvParameters){
 				doneA = 1;
 				fio_printf(1,"A\r\n");
 				if(doneB == 1 && doneA == 1){
-					doneA = 0;
-					doneB = 0;
+				//	doneA = 0;
+				//	doneB = 0;
 					mot_num = 0;
 					motorA = 0;
 					motorB = 0;
 					motA = 0.0;
 					motB = 0.0;
-					fio_printf(1, "IM here\r\n");
 					vTaskResume(xHandle);
 				}else{
 					doneA = 1;
 				}
 			}else{
-				fio_printf(1,"motorA hello\r\n");
 				/*
 					function handle();
 				*/
@@ -372,8 +396,8 @@ void motorB_handler(void *pvParameters){
 				doneB = 1;
 				fio_printf(1,"B\r\n");
 				if(doneB == 1 && doneA == 1){
-					doneA = 0;
-					doneB = 0;
+				//	doneA = 0;
+				//	doneB = 0;
 					motorB = 0;
 					motorA = 0;
 					mot_num = 0;
@@ -384,7 +408,6 @@ void motorB_handler(void *pvParameters){
 					doneB = 1;
 				}
 			}else{
-				fio_printf(1,"motorB fuck\r\n");
 			/*
 				function handle();
 			*/
@@ -415,6 +438,7 @@ int main()
 	LCD_Clear( 0x0000 );
 	LCD_SetTextColor( 0xFFFF );
 	*/
+	TIM4 -> CCR1 = 37;
 	fs_init();
 	fio_init();
 	/* Create the queue used by the serial task.  Messages for write to
@@ -423,9 +447,9 @@ int main()
 	/* Reference: www.freertos.org/a00116.html */
 	serial_rx_queue = xQueueCreate(1, sizeof(char));
 	/* Start running the tasks. */
-	//xTaskCreate(command_prompt,
-	  //          (signed portCHAR *) "CLI",
-	    //        512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, &xHandle);
+	xTaskCreate(command_prompt,
+	            (signed portCHAR *) "CLI",
+	            512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, &xHandle);
 	xTaskCreate(motorA_handler,(signed portCHAR *) "motorA",512,NULL,tskIDLE_PRIORITY+1,&xHandle_motorA);
 	xTaskCreate(motorB_handler,(signed portCHAR *) "motorB",512,NULL,tskIDLE_PRIORITY+1,&xHandle_motorB);
 	vTaskStartScheduler();
