@@ -180,9 +180,18 @@ void help_command(int n,char *argv[]){
 int atoi(char *input){
 	int i;
 	int sum = 0;
-	for (i=0 ; input[i]!='\0' ; i++){
-		sum *= 10;
-		sum += input[i] - '0';
+	if(input[0] == '-') {
+		for(i = 1; input[i] != '\0'; i++) {
+			sum *= 10;
+			sum += input[i] - '0';
+		}
+		sum = 0 - sum;
+	}
+	else {
+		for (i=0 ; input[i]!='\0' ; i++){
+			sum *= 10;
+			sum += input[i] - '0';
+		}
 	}
 	return sum;
 }
