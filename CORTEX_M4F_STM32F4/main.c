@@ -35,17 +35,14 @@ int motB = 0;
 /*delay of motor A, B */
 float dA = 0.0;
 float dB = 0.0;
-/* is motor A, B finish flag */
-int doneA = 0;
-int doneB = 0;
 /* handler */
 xTaskHandle xHandle;
 xTaskHandle xHandle_motorA;
 xTaskHandle xHandle_motorB;
-/* should motor A, B work flag*/
-int motorA = 0;
-int motorB = 0;
-/**/
+SemaphoreHandle_t xSemaphoreA;
+SemaphoreHandle_t xSemaphoreB;
+SemaphoreHandle_t xSemaphoreC;
+SemaphoreHandle_t xSemaphoreD;
 /* Add for serial input */
 volatile xSemaphoreHandle serial_tx_wait_sem = NULL;
 /* Add for serial input */
@@ -122,7 +119,8 @@ void clockwise(int n, float delay)
 	GPIO_ResetBits(GPIOG, GPIO_Pin_9 | GPIO_Pin_10 | \
 	               GPIO_Pin_13);
 	GPIO_SetBits(GPIOG, GPIO_Pin_14);
-	for(int i = 0; i < n; i++) {
+	int i = 0;
+	for(i = 0; i < n; i++) {
 		GPIO_ResetBits(GPIOG, GPIO_Pin_9|GPIO_Pin_10|GPIO_Pin_13);
 		Delay(delay);
 		GPIO_SetBits(GPIOG, GPIO_Pin_13);
@@ -140,13 +138,15 @@ void clockwise(int n, float delay)
 		GPIO_SetBits(GPIOG, GPIO_Pin_14);
 		Delay(delay);
 	}
+	fio_printf(1, "cw A %d\r\n", i);
 }
 void counterClockwise(int n, float delay)
 {
 	GPIO_ResetBits(GPIOG, GPIO_Pin_10 | \
 	               GPIO_Pin_13 | GPIO_Pin_14);
 	GPIO_SetBits(GPIOG, GPIO_Pin_9);
-	for(int i = 0; i < n; i++) {
+	int i = 0;
+	for(i = 0; i < n; i++) {
 		GPIO_ResetBits(GPIOG, GPIO_Pin_14);
 		Delay(delay);
 		GPIO_SetBits(GPIOG, GPIO_Pin_10);
@@ -164,12 +164,14 @@ void counterClockwise(int n, float delay)
 		GPIO_SetBits(GPIOG, GPIO_Pin_9);
 		Delay(delay);
 	}
+	fio_printf(1, "ccw A %d\r\n", i);
 }
 void clockwiseB(int n, float delay)
 {
 	GPIO_ResetBits(GPIOE, GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4);
 	GPIO_SetBits(GPIOE, GPIO_Pin_5);
-	for(int i = 0; i < n; i++) {
+	int i = 0;
+	for(i = 0; i < n; i++) {
 		GPIO_ResetBits(GPIOE, GPIO_Pin_2);
 		Delay(delay);
 		GPIO_SetBits(GPIOE, GPIO_Pin_4);
@@ -187,12 +189,14 @@ void clockwiseB(int n, float delay)
 		GPIO_SetBits(GPIOE, GPIO_Pin_5);
 		Delay(delay);
 	}
+	fio_printf(1, "cw B %d\r\n", i);
 }
 void counterClockwiseB(int n, float delay)
 {
 	GPIO_ResetBits(GPIOE, GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5);
 	GPIO_SetBits(GPIOE, GPIO_Pin_2);
-	for(int i = 0; i < n; i++) {
+	int i = 0;
+	for(i = 0; i < n; i++) {
 		GPIO_ResetBits(GPIOE, GPIO_Pin_5);
 		Delay(delay);
 		GPIO_SetBits(GPIOE, GPIO_Pin_3);
@@ -210,6 +214,7 @@ void counterClockwiseB(int n, float delay)
 		GPIO_SetBits(GPIOE, GPIO_Pin_2);
 		Delay(delay);
 	}
+	fio_printf(1, "ccw B %d\r\n", i);
 }
 
 void parse(char* str,char* argv[]){
@@ -257,8 +262,21 @@ void command_prompt(void *pvParameters)
 	char buf[128];
 	char *argv[100];
 	char hint[] = USER_NAME "@" USER_NAME "-STM32:~$ ";
-	
 
+	xSemaphoreA = xSemaphoreCreateMutex();
+	xSemaphoreB = xSemaphoreCreateMutex();
+	xSemaphoreC = xSemaphoreCreateMutex();
+	xSemaphoreD = xSemaphoreCreateMutex();
+	if(xSemaphoreA == NULL || xSemaphoreB == NULL || xSemaphoreC == NULL || xSemaphoreD == NULL)
+		fio_printf(1, "create semaphore failed!\r\n");
+	
+	else {
+		xSemaphoreTake(xSemaphoreA, (TickType_t) 10);
+		xSemaphoreTake(xSemaphoreB, (TickType_t) 10);
+		xSemaphoreTake(xSemaphoreC, (TickType_t) 10);
+		xSemaphoreTake(xSemaphoreD, (TickType_t) 10);
+		fio_printf(1, "command get semaphoreAB\r\n");
+	}
 	fio_printf(1,"Painter control!\r\n");
 	while(1){
 		fio_printf(1, "%s", hint);
@@ -266,15 +284,14 @@ void command_prompt(void *pvParameters)
 		//parse f code	
 		parse(buf,argv);
 		/* this task control pen */
-		//fio_printf(1, "pepenpepep %d\r\n", penCtrl);
 		/*motA = atoi(argv[0]);
 		motB = atoi(argv[1]);
 		int penCtrl = atoi(argv[2]);*/
 		int penCtrl = 0;
 		if(atoi(argv[0]) == 1) {
 		  for(int i = 0; i < data3num; i++) {
-		    doneA = 0;
-		    doneB = 0;
+		    //doneA = 0;
+		    //doneB = 0;
 		    motA = data3[i][0];
 		    motB = data3[i][1];
 		    penCtrl = data3[i][2];
@@ -288,20 +305,19 @@ void command_prompt(void *pvParameters)
 				TIM4 -> CCR1 = 115;
 			}
 			/* convert coordinate to steps of motor A, B */
-			int tempA = motA - positionX;
-			int tempB = motB - positionY;
-			positionX = motA;
-			positionY = motB;
-			motA = tempA;
-			motB = tempB;
+			int tempA = motA;
+			int tempB = motB;
+			motA = motA - positionX;
+			motB = motB - positionY;
+			positionX = tempA;
+			positionY = tempB;
 			if(motA != 0) {
-				motorA = 1;
 				mot_num++;
 			}
 			if(motB != 0) {
-				motorB = 1;
 				mot_num++;
 			}
+			fio_printf(1, "%d\r\n", mot_num);
 			if(mot_num == 2){
 				dB = ((float)motA/(float)motB) * PHASE_DELAY_MIN;
 				if(dB < 0)
@@ -315,23 +331,37 @@ void command_prompt(void *pvParameters)
 				else {
 					dA = PHASE_DELAY_MIN;
 				}
-			}else{
+				xSemaphoreGive(xSemaphoreA);
+				xSemaphoreGive(xSemaphoreB);
+			}
+			else {
 				if(motA != 0){
 					/* only motorA moving */
 					dA = PHASE_DELAY_MIN;
+					xSemaphoreGive(xSemaphoreA);
 				}
 				else{
 					/* only motorB moving */
 					dB = PHASE_DELAY_MIN;
-					//fio_printf(1,"db = %d \r\n",(int)dB);
+					xSemaphoreGive(xSemaphoreB);
 				}
 			}
-			fio_printf(1, "%d, %d\r\n", doneA, doneB);
-			if(doneA == 0 || doneB == 0) {
-				vTaskSuspend(xHandle);
+			//vTaskDelay(100);
+			vTaskSuspend(xHandle);
+			if(mot_num != 2) {
+				if(motA != 0)
+					while(xSemaphoreTake(xSemaphoreC, (TickType_t) 10) != pdTRUE);
+				else
+					while(xSemaphoreTake(xSemaphoreD, (TickType_t) 10) != pdTRUE);
 			}
-		
-			//vTaskSuspend(xHandle);
+			else {
+				while(xSemaphoreTake(xSemaphoreC, (TickType_t) 10) != pdTRUE);
+				while(xSemaphoreTake(xSemaphoreD, (TickType_t) 10) != pdTRUE);
+			}
+			mot_num = 0;
+			motA = 0;
+			motB = 0;
+			fio_printf(1, "finish %d times , A, B\r\n", i+1);
 		  }
 		}
 	}
@@ -339,86 +369,56 @@ void command_prompt(void *pvParameters)
 
 void motorA_handler(void *pvParameters){
 	while(1){
-		vTaskResume(xHandle);
-		if(motorA == 1){
+		//vTaskResume(xHandle);
+		if(xSemaphoreTake(xSemaphoreA, (TickType_t) 10) == pdTRUE){
+			fio_printf(1, "A got semaphore\r\n");
 			if(mot_num==2){
-				/*
-					function handle();
-				*/
+				/* function handle */
 				if(motA < 0)
 					clockwise(0 - motA, dA);
 				else
 					counterClockwise(motA, dA);
-
-				doneA = 1;
-				fio_printf(1,"A\r\n");
-				if(doneB == 1 && doneA == 1){
-				//	doneA = 0;
-				//	doneB = 0;
-					mot_num = 0;
-					motorA = 0;
-					motorB = 0;
-					motA = 0.0;
-					motB = 0.0;
-					vTaskResume(xHandle);
-				}else{
-					doneA = 1;
-				}
 			}else{
-				/*
-					function handle();
-				*/
+				/* function handle */
 				if(motA < 0)
 					clockwise(0 - motA, dA);
 				else
 					counterClockwise(motA, dA);
-				mot_num = 0;
-				motorA = 0;
-				vTaskResume(xHandle);
 			}
+			fio_printf(1,"A finished\r\n");
+			xSemaphoreGive(xSemaphoreC);
+			if(mot_num == 2 || (mot_num == 1 && motA != 0))
+				vTaskResume(xHandle);
+			//vTaskSuspend(xHandle_motorA);
+			//vTaskDelay(100);
 		}
 	}
 }
 
 void motorB_handler(void *pvParameters){
 	while(1){
-		vTaskResume(xHandle);
-		if(motorB == 1){
+		//vTaskResume(xHandle);
+		if(xSemaphoreTake(xSemaphoreB, (TickType_t) 10) == pdTRUE){
+			fio_printf(1, "B got semaphore\r\n");
 			if(mot_num==2){
-				/*
-					function handle();
-				*/
+				/* function handle */
 				if(motB < 0)
 					clockwiseB(0 - motB, dB);
 				else
 					counterClockwiseB(motB, dB);
-
-				doneB = 1;
-				fio_printf(1,"B\r\n");
-				if(doneB == 1 && doneA == 1){
-				//	doneA = 0;
-				//	doneB = 0;
-					motorB = 0;
-					motorA = 0;
-					mot_num = 0;
-					motA = 0.0;
-					motB = 0.0;
-					vTaskResume(xHandle);
-				}else{
-					doneB = 1;
-				}
 			}else{
-			/*
-				function handle();
-			*/
+				/* function handle */
 				if(motB < 0)
 					clockwiseB(0 - motB, dB);
 				else
 					counterClockwiseB(motB, dB);
-				motorB = 0;
-				mot_num = 0;
-				vTaskResume(xHandle);
 			}
+			fio_printf(1,"B finished\r\n");
+			xSemaphoreGive(xSemaphoreD);
+			if(mot_num == 1 && motB != 0)
+				vTaskResume(xHandle);
+			//vTaskSuspend(xHandle_motorB);
+			//vTaskDelay(100);
 		}
 	}
 
@@ -430,14 +430,6 @@ int main()
 	init_rs232();
 	enable_rs232_interrupts();
 	enable_rs232();
-	/* setup LCD */
-	/*LCD_Init();
-	LTDC_Cmd(ENABLE);
-	LCD_LayerInit();
-	LCD_SetLayer( 0x0001 );
-	LCD_Clear( 0x0000 );
-	LCD_SetTextColor( 0xFFFF );
-	*/
 	TIM4 -> CCR1 = 37;
 	fs_init();
 	fio_init();
