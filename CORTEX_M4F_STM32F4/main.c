@@ -289,12 +289,12 @@ void command_prompt(void *pvParameters)
 		int penCtrl = atoi(argv[2]);*/
 		int penCtrl = 0;
 		if(atoi(argv[0]) == 1) {
-		  for(int i = 0; i < data3num; i++) {
+		  for(int i = 0; i < data2num; i++) {
 		    //doneA = 0;
 		    //doneB = 0;
-		    motA = data3[i][0];
-		    motB = data3[i][1];
-		    penCtrl = data3[i][2];
+		    motA = data2[i][0];
+		    motB = data2[i][1];
+		    penCtrl = data2[i][2];
 			fio_printf(1, "%d %d %d\r\n", motA, motB, penCtrl);
 			if(penCtrl == 0) {
 				/* up */
@@ -347,16 +347,18 @@ void command_prompt(void *pvParameters)
 				}
 			}
 			//vTaskDelay(100);
-			vTaskSuspend(xHandle);
-			if(mot_num != 2) {
-				if(motA != 0)
+			if(mot_num != 0) {
+				vTaskSuspend(xHandle);
+				if(mot_num != 2) {
+					if(motA != 0)
+						while(xSemaphoreTake(xSemaphoreC, (TickType_t) 10) != pdTRUE);
+					else
+						while(xSemaphoreTake(xSemaphoreD, (TickType_t) 10) != pdTRUE);
+				}
+				else {
 					while(xSemaphoreTake(xSemaphoreC, (TickType_t) 10) != pdTRUE);
-				else
 					while(xSemaphoreTake(xSemaphoreD, (TickType_t) 10) != pdTRUE);
-			}
-			else {
-				while(xSemaphoreTake(xSemaphoreC, (TickType_t) 10) != pdTRUE);
-				while(xSemaphoreTake(xSemaphoreD, (TickType_t) 10) != pdTRUE);
+				}
 			}
 			mot_num = 0;
 			motA = 0;
